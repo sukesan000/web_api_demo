@@ -1,0 +1,12 @@
+dbcp2.jdbc:
+  driver-class-name: com.mysql.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/moviedb?characterEncoding=UTF-8
+    username: root
+    password: Sukesan55
+    initial-size: 1
+    max-idle: 3
+    min-idle: 1
+
+  # mybatisの設定
+  mybatis:
+    mapper-locations: classpath:com/example/springPractice/repository/mybatis/*.xml
