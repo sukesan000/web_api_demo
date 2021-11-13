@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springPractice.repository.mybatis.MovieMapper">
+    <resultMap id="Director" type="com.example.springPractice.domain.Director">
+        <id property="directorId" column="director_id" />
+        <result property="directorName" column="director_name"/>
+    </resultMap>
+
+    <resultMap id="Movie" type="com.example.springPractice.domain.Movie">
+        <id property="movieId" column="movie_id" />
+        <result property="movieName" column="movie_name"/>
+        <association property="director" resultMap="Director"/>
+    </resultMap>
+
+    <select id="find" resultMap="Movie">
+        SELECT M.MOVIE_ID, M.MOVIE_NAME, D.DIRECTOR_ID, D.DIRECTOR_NAME
+        FROM MOVIE M INNER JOIN DIRECTOR D USING (DIRECTOR_ID)
+        <where>
+            <if test="movieName != null">
+                M.MOVIE_NAME LIKE CONCAT('%', #{movieName}, '%')
+            </if>
+            <if test="directorName != null">
+                AND D.DIRECTOR_NAME LIKE CONCAT('%', #{directorName}, '%')
+            </if>
+        </where>
+        ORDER BY M.MOVIE_ID ASC
+    </select>
+    <select id="get" resultMap="Movie">
+        SELECT M.MOVIE_ID, M.MOVIE_NAME, D.DIRECTOR_ID, D.DIRECTOR_NAME
+        FROM MOVIE M INNER JOIN DIRECTOR D USING (DIRECTOR_ID)
+        WHERE MOVIE_ID = #{movieId}
+    </select>
+
+    <select id="lock" resultMap="Movie">
+        SELECT M.MOVIE_ID, M.MOVIE_NAME, D.DIRECTOR_ID, D.DIRECTOR_NAME
+        FROM MOVIE M INNER JOIN DIRECTOR D USING (DIRECTOR_ID)
+        WHERE MOVIE_ID = #{movieId}
+        FOR UPDATE
+    </select>
+
+    <insert id="add" parameterType="com.example.demo.domain.Movie" keyProperty="movieId">
+        <!-- selectKeyによってmovieIdを新しく設定する -->
+        <selectKey keyProperty="movieId" resultType="string" order="BEFORE">
+            <!-- MOVIE_IDのAUTO INCREMENTを実装 -->
+            SELECT COALESCE(CONCAT('M', LPAD(RIGHT(MAX(MOVIE_ID), 2) + 1, 2, '0')), 'M01') FROM MOVIE
+        </selectKey>
+        INSERT INTO MOVIE (MOVIE_ID , MOVIE_NAME, DIRECTOR_ID) VALUES (#{movieId}, #{movieName}, #{director.directorId});
+    </insert>
+
+    <update id="set" parameterType="com.example.demo.domain.Movie">
+        UPDATE MOVIE
+        <set>
+            <if test="movieName != null">
+                MOVIE_NAME = #{movieName},
+            </if>
+            <if test="director.directorId != null">
+                DIRECTOR_ID = #{director.directorId},
+            </if>
+        </set>
+        WHERE MOVIE_ID = #{movieId}
+    </update>
+
+    <delete id="remove" parameterType="com.example.demo.domain.Movie">
+        DELETE FROM MOVIE
+        WHERE MOVIE_ID = #{movieId}
+    </delete>
+</mapper>
